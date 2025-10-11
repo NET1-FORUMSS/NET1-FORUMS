@@ -10,7 +10,7 @@
     <h2>Register</h2>
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Password" />
-    <button onclick="register()">Register</button>
+    <button id="registerBtn">Register</button>
     <p id="msg"></p>
   </div>
 
@@ -18,7 +18,7 @@
     <h2>Create a Post</h2>
     <input id="postTitle" placeholder="Title" />
     <textarea id="postBody" placeholder="Your message"></textarea><br>
-    <button onclick="createPost()">Post</button>
+    <button id="postBtn">Post</button>
     <h2>All Posts</h2>
     <ul id="posts"></ul>
   </div>
@@ -96,9 +96,9 @@
       });
     }
 
-    // Expose functions globally so inline onclick handlers can find them
-    window.register = register;
-    window.createPost = createPost;
+    // Attach event listeners after DOM is ready
+    document.getElementById("registerBtn").addEventListener("click", register);
+    document.getElementById("postBtn").addEventListener("click", createPost);
 
   </script>
 </body>
