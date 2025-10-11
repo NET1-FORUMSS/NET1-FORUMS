@@ -1,20 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Forum App</title>
+  <title>Simple Forum</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+    #auth {
+      margin-bottom: 20px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+    .tab-btn {
+      cursor: pointer;
+      padding: 10px 20px;
+      border: none;
+      background: lightgray;
+      margin-right: 5px;
+      font-weight: bold;
+    }
+    .tab-btn.active {
+      background: #4285F4;
+      color: white;
+    }
+    #msg {
+      color: red;
+      margin-top: 10px;
+    }
+    #logoutBtn {
+      margin-bottom: 20px;
+      background: #f44336;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 8px 15px;
+    }
+  </style>
 </head>
 <body>
+
   <h1>Simple Forum</h1>
 
   <div id="auth">
-    <h2>Register</h2>
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password" />
-    <button id="registerBtn">Register</button>
+    <div>
+      <button class="tab-btn active" id="showRegisterBtn">Register</button>
+      <button class="tab-btn" id="showLoginBtn">Login</button>
+    </div>
+
+    <div id="registerForm">
+      <h2>Register</h2>
+      <input id="regEmail" type="email" placeholder="Email" />
+      <input id="regPassword" type="password" placeholder="Password" />
+      <button id="registerBtn">Register</button>
+    </div>
+
+    <div id="loginForm" style="display:none;">
+      <h2>Login</h2>
+      <input id="loginEmail" type="email" placeholder="Email" />
+      <input id="loginPassword" type="password" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+    </div>
+
     <p id="msg"></p>
   </div>
 
   <div id="post-area" style="display:none;">
+    <button id="logoutBtn">Logout</button>
     <h2>Create a Post</h2>
     <input id="postTitle" placeholder="Title" />
     <textarea id="postBody" placeholder="Your message"></textarea><br>
@@ -28,6 +90,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import {
       getAuth, createUserWithEmailAndPassword, sendEmailVerification,
+      signInWithEmailAndPassword, signOut,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
@@ -44,25 +107,77 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    async function register() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const msg = document.getElementById("msg");
+    const registerBtn = document.getElementById("registerBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const msg = document.getElementById("msg");
 
+    const showRegisterBtn = document.getElementById("showRegisterBtn");
+    const showLoginBtn = document.getElementById("showLoginBtn");
+    const registerForm = document.getElementById("registerForm");
+    const loginForm = document.getElementById("loginForm");
+
+    // Toggle between Register and Login forms
+    showRegisterBtn.addEventListener("click", () => {
+      registerForm.style.display = "block";
+      loginForm.style.display = "none";
+      msg.innerText = "";
+      showRegisterBtn.classList.add("active");
+      showLoginBtn.classList.remove("active");
+    });
+    showLoginBtn.addEventListener("click", () => {
+      registerForm.style.display = "none";
+      loginForm.style.display = "block";
+      msg.innerText = "";
+      showLoginBtn.classList.add("active");
+      showRegisterBtn.classList.remove("active");
+    });
+
+    registerBtn.addEventListener("click", async () => {
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
+      msg.style.color = "red";
       try {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCred.user);
-        msg.innerText = "Verification email sent! Check your inbox.";
+        msg.style.color = "green";
+        msg.innerText = "Verification email sent! Please check your inbox and verify before login.";
       } catch (err) {
         msg.innerText = err.message;
       }
-    }
+    });
+
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+      msg.style.color = "red";
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        if (!userCred.user.emailVerified) {
+          msg.innerText = "Please verify your email before logging in.";
+          await signOut(auth);
+        } else {
+          msg.innerText = "";
+        }
+      } catch (err) {
+        msg.innerText = err.message;
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      msg.innerText = "Logged out.";
+    });
 
     onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
         document.getElementById("auth").style.display = "none";
         document.getElementById("post-area").style.display = "block";
+        msg.innerText = "";
         loadPosts();
+      } else {
+        document.getElementById("auth").style.display = "block";
+        document.getElementById("post-area").style.display = "none";
       }
     });
 
@@ -74,14 +189,24 @@
         alert("You must verify your email first!");
         return;
       }
-      await addDoc(collection(db, "posts"), {
-        uid: user.uid,
-        title,
-        body,
-        createdAt: new Date().toISOString()
-      });
-      alert("Post created!");
-      loadPosts();
+      if (!title.trim() || !body.trim()) {
+        alert("Title and message cannot be empty");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "posts"), {
+          uid: user.uid,
+          title,
+          body,
+          createdAt: new Date().toISOString()
+        });
+        alert("Post created!");
+        document.getElementById("postTitle").value = "";
+        document.getElementById("postBody").value = "";
+        loadPosts();
+      } catch (e) {
+        alert("Error adding post: " + e.message);
+      }
     }
 
     async function loadPosts() {
@@ -96,10 +221,9 @@
       });
     }
 
-    // Add event listeners for buttons
-    document.getElementById("registerBtn").addEventListener("click", register);
     document.getElementById("postBtn").addEventListener("click", createPost);
 
   </script>
+
 </body>
 </html>
