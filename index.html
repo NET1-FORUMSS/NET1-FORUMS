@@ -192,7 +192,6 @@
   </header>
 
   <div class="container">
-
     <div id="auth" class="card">
       <div class="tabs">
         <button class="active" id="showRegisterBtn">Register</button>
@@ -229,15 +228,14 @@
       <h2 style="margin-top: 30px;">All Posts</h2>
       <ul id="posts"></ul>
     </div>
-
   </div>
 
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import {
       getAuth, createUserWithEmailAndPassword, sendEmailVerification,
-      signInWithEmailAndPassword, signOut,
-      onAuthStateChanged
+      signInWithEmailAndPassword, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import {
       getFirestore, collection, addDoc, getDocs
@@ -248,21 +246,29 @@
       authDomain: "test-49ea8.firebaseapp.com",
       projectId: "test-49ea8"
     };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = get
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Elements
     const registerBtn = document.getElementById("registerBtn");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const msg = document.getElementById("msg");
-    const greeting = document.getElementById("greeting");
 
     const showRegisterBtn = document.getElementById("showRegisterBtn");
     const showLoginBtn = document.getElementById("showLoginBtn");
     const registerForm = document.getElementById("registerForm");
     const loginForm = document.getElementById("loginForm");
 
+    const postArea = document.getElementById("post-area");
+    const greeting = document.getElementById("greeting");
+
+    // Tab toggling
     showRegisterBtn.addEventListener("click", () => {
       registerForm.style.display = "block";
       loginForm.style.display = "none";
@@ -278,24 +284,38 @@
       showRegisterBtn.classList.remove("active");
     });
 
+    // Register
     registerBtn.addEventListener("click", async () => {
-      const email = document.getElementById("regEmail").value;
-      const password = document.getElementById("regPassword").value;
-      msg.style.color = var(--error); // Minor fix needed below
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+      msg.style.color = "var(--error)";
+      if (!email || !password) {
+        msg.innerText = "Email and Password are required.";
+        return;
+      }
       try {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCred.user);
-        msg.style.color = var(--success);
-        msg.innerText = "Verification email sent! Check your inbox.";
+        msg.style.color = "var(--success)";
+        msg.innerText = "Verification email sent! Please check your inbox and verify before login.";
+        // Clear inputs
+        document.getElementById("regEmail").value = "";
+        document.getElementById("regPassword").value = "";
       } catch (err) {
+        msg.style.color = "var(--error)";
         msg.innerText = err.message;
       }
     });
 
+    // Login
     loginBtn.addEventListener("click", async () => {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-      msg.style.color = "#e74c3c";
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      msg.style.color = "var(--error)";
+      if (!email || !password) {
+        msg.innerText = "Email and Password are required.";
+        return;
+      }
       try {
         const userCred = await signInWithEmailAndPassword(auth, email, password);
         if (!userCred.user.emailVerified) {
@@ -303,32 +323,38 @@
           await signOut(auth);
         } else {
           msg.innerText = "";
+          // Clear inputs
+          document.getElementById("loginEmail").value = "";
+          document.getElementById("loginPassword").value = "";
         }
       } catch (err) {
         msg.innerText = err.message;
       }
     });
 
+    // Logout
     logoutBtn.addEventListener("click", async () => {
       await signOut(auth);
+      msg.style.color = "var(--text-dark)";
       msg.innerText = "Logged out.";
-      greeting.innerText = "";
     });
 
+    // Auth state change handler
     onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
         document.getElementById("auth").style.display = "none";
-        document.getElementById("post-area").style.display = "block";
+        postArea.style.display = "block";
+        greeting.innerText = `Welcome, ${user.email}`;
         msg.innerText = "";
-        greeting.innerText = `Welcome, ${user.email}!`;
         loadPosts();
       } else {
         document.getElementById("auth").style.display = "block";
-        document.getElementById("post-area").style.display = "none";
+        postArea.style.display = "none";
         greeting.innerText = "";
       }
     });
 
+    // Create post
     async function createPost() {
       const title = document.getElementById("postTitle").value.trim();
       const body = document.getElementById("postBody").value.trim();
@@ -338,12 +364,13 @@
         return;
       }
       if (!title || !body) {
-        alert("Title / message cannot be empty");
+        alert("Title and message cannot be empty");
         return;
       }
       try {
         await addDoc(collection(db, "posts"), {
           uid: user.uid,
+          email: user.email,
           title,
           body,
           createdAt: new Date().toISOString()
@@ -357,24 +384,42 @@
       }
     }
 
+    // Load posts
     async function loadPosts() {
       const postsEl = document.getElementById("posts");
       postsEl.innerHTML = "";
-      const querySnapshot = await getDocs(collection(db, "posts"));
-      querySnapshot.forEach((doc) => {
-        const post = doc.data();
-        const li = document.createElement("li");
-        const date = new Date(post.createdAt).toLocaleString();
-        li.innerHTML = `
-          <div class="title">${post.title}</div>
-          <div class="timestamp">${date}</div>
-          <div class="body">${post.body}</div>
-        `;
-        postsEl.appendChild(li);
-      });
+      try {
+        const querySnapshot = await getDocs(collection(db, "posts"));
+        querySnapshot.forEach((doc) => {
+          const post = doc.data();
+          const li = document.createElement("li");
+
+          const titleEl = document.createElement("div");
+          titleEl.className = "title";
+          titleEl.textContent = post.title;
+
+          const bodyEl = document.createElement("div");
+          bodyEl.className = "body";
+          bodyEl.textContent = post.body;
+
+          const timestampEl = document.createElement("div");
+          timestampEl.className = "timestamp";
+          const date = new Date(post.createdAt);
+          timestampEl.textContent = date.toLocaleString();
+
+          li.appendChild(titleEl);
+          li.appendChild(timestampEl);
+          li.appendChild(bodyEl);
+
+          postsEl.appendChild(li);
+        });
+      } catch (e) {
+        console.error("Error loading posts: ", e);
+      }
     }
 
     document.getElementById("postBtn").addEventListener("click", createPost);
+
   </script>
 </body>
 </html>
