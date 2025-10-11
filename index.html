@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Forum App</title>
+</head>
+<body>
+  <h1>Simple Forum</h1>
+
+  <div id="auth">
+    <h2>Register</h2>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button onclick="register()">Register</button>
+    <p id="msg"></p>
+  </div>
+
+  <div id="post-area" style="display:none;">
+    <h2>Create a Post</h2>
+    <input id="postTitle" placeholder="Title" />
+    <textarea id="postBody" placeholder="Your message"></textarea><br>
+    <button onclick="createPost()">Post</button>
+    <h2>All Posts</h2>
+    <ul id="posts"></ul>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getAuth, createUserWithEmailAndPassword, sendEmailVerification,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, getDocs
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // 👇 Paste your Firebase config here
+    const firebaseConfig = {
+      apiKey: "PASTE-YOURS",
+      authDomain: "PASTE-YOURS.firebaseapp.com",
+      projectId: "PASTE-YOURS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function register() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("msg");
+
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCred.user);
+        msg.innerText = "Verification email sent! Check your inbox.";
+      } catch (err) {
+        msg.innerText = err.message;
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user && user.emailVerified) {
+        document.getElementById("auth").style.display = "none";
+        document.getElementById("post-area").style.display = "block";
+        loadPosts();
+      }
+    });
+
+    async function createPost() {
+      const title = document.getElementById("postTitle").value;
+      const body = document.getElementById("postBody").value;
+      const user = auth.currentUser;
+      if (!user || !user.emailVerified) {
+        alert("You must verify your email first!");
+        return;
+      }
+      await addDoc(collection(db, "posts"), {
+        uid: user.uid,
+        title,
+        body,
+        createdAt: new Date().toISOString()
+      });
+      alert("Post created!");
+      loadPosts();
+    }
+
+    async function loadPosts() {
+      const postsEl = document.getElementById("posts");
+      postsEl.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "posts"));
+      querySnapshot.forEach((doc) => {
+        const post = doc.data();
+        const li = document.createElement("li");
+        li.innerText = `${post.title}: ${post.body}`;
+        postsEl.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
