@@ -34,7 +34,6 @@
       getFirestore, collection, addDoc, getDocs
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    // 👇 Paste your Firebase config here
     const firebaseConfig = {
       apiKey: "AIzaSyCsRmrElDmH6MbEDKJrZRbXSuSUVKZMztU",
       authDomain: "test-49ea8.firebaseapp.com",
@@ -96,6 +95,11 @@
         postsEl.appendChild(li);
       });
     }
+
+    // Expose functions globally so inline onclick handlers can find them
+    window.register = register;
+    window.createPost = createPost;
+
   </script>
 </body>
 </html>
