@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NET1 FORUMS</title>
   <style>
-    /* Global Styles */
     :root {
       --bg-light: #f9f9f9;
       --bg-dark: #1e1e1e;
@@ -24,16 +23,16 @@
       margin: 0;
       padding: 0;
       color: var(--text-dark);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
     }
 
     header {
       width: 100%;
       max-width: 700px;
-      padding: 20px 15px;
+      padding: 20px 15px 0 15px;
       text-align: center;
     }
 
@@ -59,7 +58,7 @@
     .container {
       width: 100%;
       max-width: 700px;
-      padding: 30px 15px;
+      padding: 20px 15px 40px 15px;
       box-sizing: border-box;
     }
 
@@ -67,9 +66,8 @@
       background: white;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
-      padding: 25px;
+      padding: 25px 20px;
       margin-bottom: 30px;
-      text-align: center;
     }
 
     .tabs {
@@ -81,49 +79,18 @@
     .tabs button {
       background: none;
       border: none;
-      padding: 10px 20px;
+      padding: 10px 25px;
       font-size: 1rem;
       cursor: pointer;
       color: var(--primary);
       border-bottom: 3px solid transparent;
       transition: border-color 0.3s ease;
       font-weight: 600;
-      margin: 0 10px;
     }
 
     .tabs button.active {
       border-color: var(--primary);
       font-weight: 700;
-    }
-
-    /* Styling the Google button */
-    .google-btn {
-      background-color: #4285F4;
-      border-radius: var(--border-radius);
-      color: white;
-      padding: 12px 30px;
-      font-size: 1rem;
-      width: 100%;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: background-color 0.3s ease;
-      margin-top: 20px;
-    }
-
-    .google-btn:hover {
-      background-color: #357ae8;
-    }
-
-    .google-btn:active {
-      background-color: #1a66c3;
-    }
-
-    .google-btn .google-icon {
-      margin-right: 10px;
     }
 
     input[type="email"],
@@ -133,9 +100,11 @@
       width: 100%;
       padding: 12px 15px;
       margin: 8px 0 15px 0;
+      box-sizing: border-box;
       border: 1.5px solid #ccc;
       border-radius: var(--border-radius);
       font-size: 1rem;
+      resize: vertical;
       transition: border-color 0.3s ease;
     }
 
@@ -157,26 +126,37 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
       font-weight: 600;
-      margin-top: 10px;
     }
 
     button:hover {
       background-color: #0056b3;
     }
 
+    .google-btn {
+      background: #db4437;
+      margin-top: 10px;
+      padding: 12px 25px;
+      color: white;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-weight: 600;
+      width: 100%;
+    }
+
     #msg {
       font-weight: 600;
       margin-top: 10px;
       min-height: 22px;
-      color: var(--error);
     }
 
-    /* Posts Section Styling */
     #post-area .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 15px;
+      flex-wrap: wrap;
     }
 
     #greeting {
@@ -241,7 +221,11 @@
 <body>
   <header>
     <h1>NET1 FORUMS</h1>
-    <img src="https://your-image-link.jpg" alt="Forum banner" class="forum-banner" />
+    <img
+      src="https://scontent.ftia13-1.fna.fbcdn.net/v/t39.30808-6/237009675_371797661182701_6477784088124245211_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=QyazoXQTJvgQ7kNvwEM5M43&_nc_oc=Adnq5xxLT5pCvtvzYlAjQj0xC-yUBRj9kjkL2931aJrL85tEOHCKohAXZ9mvKCp_7B8&_nc_zt=23&_nc_ht=scontent.ftia13-1.fna&_nc_gid=8C7_nWHolTU-EtjhYnCE_A&oh=00_Afd8ilsGZVG7SdiLgx8CD7f3WEL4t4tica5JbGisuxW4zA&oe=68F15CB8"
+      alt="Forum banner"
+      class="forum-banner"
+    />
   </header>
 
   <div class="container">
@@ -265,9 +249,8 @@
         <button id="loginBtn">Log In</button>
       </div>
 
-      <!-- Google Sign-In Button with Icon -->
       <button id="googleLoginBtn" class="google-btn">
-        <span class="google-icon">🟠</span> Sign in with Google
+        Sign in with Google
       </button>
 
       <p id="msg"></p>
@@ -401,7 +384,6 @@
       await signOut(auth);
       msg.style.color = "var(--text-dark)";
       msg.innerText = "Logged out.";
-      // No redirect after logout
     });
 
     // Auth state change handler
