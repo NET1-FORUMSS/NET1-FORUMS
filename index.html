@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NET1 FORUMS</title>
   <style>
-    /* Add your existing CSS code here */
+    /* Your existing CSS code here */
     .google-btn {
       background: #db4437;
       margin-top: 10px;
@@ -175,8 +175,8 @@
           await signOut(auth);
         } else {
           msg.innerText = "";
-          document.getElementById("loginEmail").value = "";
-          document.getElementById("loginPassword").value = "";
+          // Redirect to the forum (main page) after login
+          window.location.href = "/forum";  // Change this to your desired page URL
         }
       } catch (err) {
         msg.innerText = err.message;
@@ -188,6 +188,7 @@
       await signOut(auth);
       msg.style.color = "var(--text-dark)";
       msg.innerText = "Logged out.";
+      window.location.href = "/login";  // Redirect back to login page after logout
     });
 
     // Auth state change handler
