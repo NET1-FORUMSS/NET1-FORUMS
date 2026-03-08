@@ -401,7 +401,7 @@
       await signOut(auth);
       msg.style.color = "var(--text-dark)";
       msg.innerText = "Logged out.";
-      window.location.href = "/login";  // Redirect back to login page after logout
+      // No redirect after logout
     });
 
     // Auth state change handler
