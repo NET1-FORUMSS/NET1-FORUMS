@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NET1 FORUMS</title>
   <style>
+    /* Your existing CSS code */
     :root {
       --bg-light: #f9f9f9;
       --bg-dark: #1e1e1e;
@@ -70,126 +71,56 @@
       margin-bottom: 30px;
     }
 
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    .tabs button {
-      background: none;
-      border: none;
-      padding: 10px 25px;
-      font-size: 1rem;
-      cursor: pointer;
-      color: var(--primary);
-      border-bottom: 3px solid transparent;
-      transition: border-color 0.3s ease;
-      font-weight: 600;
-    }
-
-    .tabs button.active {
-      border-color: var(--primary);
-      font-weight: 700;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 12px 15px;
-      margin: 8px 0 15px 0;
-      box-sizing: border-box;
-      border: 1.5px solid #ccc;
-      border-radius: var(--border-radius);
-      font-size: 1rem;
-      resize: vertical;
-      transition: border-color 0.3s ease;
-    }
-
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    button {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
+    .google-btn {
+      background: #db4437;
+      margin-top: 10px;
       padding: 12px 25px;
+      color: white;
+      border-radius: 8px;
       font-size: 1rem;
       cursor: pointer;
       transition: background-color 0.3s ease;
       font-weight: 600;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .google-btn {
-      background: #db4437;
-      margin-top: 10px;
       width: 100%;
     }
 
-    #msg {
-      font-weight: 600;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
-    ul#posts {
-      list-style-type: none;
-      padding: 0;
-      max-height: 400px;
-      overflow-y: auto;
-      border-top: 1px solid #ddd;
-    }
-
-    ul#posts li {
-      border-bottom: 1px solid #ddd;
-      padding: 15px 10px;
-    }
-
-    .post-title { font-weight: 700; color: var(--primary); }
-    .post-body { margin-top: 5px; white-space: pre-wrap; }
-    .post-meta { font-size: 0.8rem; color: #888; margin-top: 5px; }
+    /* Add your other styles here */
   </style>
 </head>
 <body>
-
   <header>
     <h1>NET1 FORUMS</h1>
-    <img src="https://via.placeholder.com/600x150?text=Forum+Banner" alt="Banner" class="forum-banner" />
+    <img
+      src="https://your-image-link.jpg"
+      alt="Forum banner"
+      class="forum-banner"
+    />
   </header>
 
   <div class="container">
-    <div id="auth-card" class="card">
+    <div id="auth" class="card">
       <div class="tabs">
-        <button id="tabRegister" class="active">Register</button>
-        <button id="tabLogin">Login</button>
+        <button class="active" id="showRegisterBtn">Register</button>
+        <button id="showLoginBtn">Login</button>
       </div>
 
-      <div id="registerFields">
-        <h2>Create Account</h2>
+      <div id="registerForm">
+        <h2>Register</h2>
         <input id="regEmail" type="email" placeholder="Email" />
-        <input id="regPass" type="password" placeholder="Password" />
-        <button id="btnSignUp" style="width:100%">Sign Up</button>
+        <input id="regPassword" type="password" placeholder="Password" />
+        <button id="registerBtn">Sign Up</button>
       </div>
 
-      <div id="loginFields" style="display:none;">
-        <h2>Welcome Back</h2>
+      <div id="loginForm" style="display:none;">
+        <h2>Login</h2>
         <input id="loginEmail" type="email" placeholder="Email" />
-        <input id="loginPass" type="password" placeholder="Password" />
-        <button id="btnLogin" style="width:100%">Log In</button>
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <button id="loginBtn">Log In</button>
       </div>
+
+      <button id="googleLoginBtn" class="google-btn">
+        Sign in with Google
+      </button>
 
       <p id="msg"></p>
     </div>
@@ -197,125 +128,182 @@
     <div id="post-area" class="card" style="display:none;">
       <div class="top-bar">
         <div id="greeting"></div>
-        <button id="btnLogout" style="background:#666">Logout</button>
+        <button id="logoutBtn">Logout</button>
       </div>
-      
       <h2>Create a Post</h2>
       <input id="postTitle" placeholder="Title" />
-      <textarea id="postBody" placeholder="What's on your mind?"></textarea>
-      <button id="btnPost">Publish Post</button>
+      <textarea id="postBody" placeholder="Your message"></textarea>
+      <button id="postBtn">Post</button>
 
-      <h2 style="margin-top: 30px;">Recent Discussions</h2>
+      <h2 style="margin-top: 30px;">All Posts</h2>
       <ul id="posts"></ul>
     </div>
   </div>
 
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      sendEmailVerification,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+      GoogleAuthProvider,
+      signInWithPopup
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    // --- CONFIGURATION ---
-    // Replace these values with your actual Firebase project config!
-const firebaseConfig = {
-  apiKey: "AIzaSyCsRmrElDmH6MbEDKJrZRbXSuSUVKZMztU",
-  authDomain: "test-49ea8.firebaseapp.com",
-  projectId: "test-49ea8",
-  storageBucket: "test-49ea8.firebasestorage.app",
-  messagingSenderId: "868252671267",
-  appId: "1:868252671267:web:81104d814844984e8f0096",
-  measurementId: "G-WWHHKPJCY9"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsRmrElDmH6MbEDKJrZRbXSuSUVKZMztU",
+      authDomain: "test-49ea8.firebaseapp.com",
+      projectId: "test-49ea8",
+      storageBucket: "test-49ea8.firebasestorage.app",
+      messagingSenderId: "868252671267",
+      appId: "1:868252671267:web:81104d814844984e8f0096",
+      measurementId: "G-WWHHKPJCY9"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- UI ELEMENTS ---
-    const authCard = document.getElementById('auth-card');
-    const postArea = document.getElementById('post-area');
-    const msg = document.getElementById('msg');
+    const provider = new GoogleAuthProvider();
 
-    // --- TAB SWITCHING ---
-    document.getElementById('tabLogin').onclick = () => {
-      document.getElementById('loginFields').style.display = 'block';
-      document.getElementById('registerFields').style.display = 'none';
-      document.getElementById('tabLogin').classList.add('active');
-      document.getElementById('tabRegister').classList.remove('active');
-    };
+    // Elements
+    const registerBtn = document.getElementById("registerBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const googleLoginBtn = document.getElementById("googleLoginBtn");
+    const msg = document.getElementById("msg");
+    const showRegisterBtn = document.getElementById("showRegisterBtn");
+    const showLoginBtn = document.getElementById("showLoginBtn");
+    const registerForm = document.getElementById("registerForm");
+    const loginForm = document.getElementById("loginForm");
+    const postArea = document.getElementById("post-area");
+    const greeting = document.getElementById("greeting");
 
-    document.getElementById('tabRegister').onclick = () => {
-      document.getElementById('loginFields').style.display = 'none';
-      document.getElementById('registerFields').style.display = 'block';
-      document.getElementById('tabRegister').classList.add('active');
-      document.getElementById('tabLogin').classList.remove('active');
-    };
-
-    // --- AUTH ACTIONS ---
-    document.getElementById('btnSignUp').onclick = async () => {
-      const email = document.getElementById('regEmail').value;
-      const pass = document.getElementById('regPass').value;
+    // Google Sign-In Button
+    googleLoginBtn.addEventListener("click", async () => {
+      googleLoginBtn.disabled = true; // Disable button to avoid multiple clicks
       try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-      } catch (e) { msg.innerText = e.message; msg.style.color = 'var(--error)'; }
-    };
-
-    document.getElementById('btnLogin').onclick = async () => {
-      const email = document.getElementById('loginEmail').value;
-      const pass = document.getElementById('loginPass').value;
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-      } catch (e) { msg.innerText = e.message; msg.style.color = 'var(--error)'; }
-    };
-
-    document.getElementById('btnLogout').onclick = () => signOut(auth);
-
-    // --- FORUM ACTIONS ---
-    document.getElementById('btnPost').onclick = async () => {
-      const title = document.getElementById('postTitle').value;
-      const body = document.getElementById('postBody').value;
-      if(!title || !body) return alert("Fields cannot be empty");
-
-      try {
-        await addDoc(collection(db, "posts"), {
-          title: title,
-          body: body,
-          author: auth.currentUser.email,
-          createdAt: serverTimestamp()
-        });
-        document.getElementById('postTitle').value = "";
-        document.getElementById('postBody').value = "";
-      } catch (e) { console.error(e); }
-    };
-
-    // --- OBSERVERS (The "Engine") ---
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        authCard.style.display = 'none';
-        postArea.style.display = 'block';
-        document.getElementById('greeting').innerText = `Logged in as: ${user.email}`;
-      } else {
-        authCard.style.display = 'block';
-        postArea.style.display = 'none';
+        await signInWithPopup(auth, provider);
+        msg.style.color = "var(--success)";
+        msg.innerText = "Logged in with Google!";
+      } catch (err) {
+        msg.style.color = "var(--error)";
+        msg.innerText = err.message;
+      } finally {
+        googleLoginBtn.disabled = false; // Re-enable button after sign-in attempt
       }
     });
 
-    // Real-time Posts Listener
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
-      const postsUl = document.getElementById('posts');
-      postsUl.innerHTML = "";
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <div class="post-title">${data.title}</div>
-          <div class="post-body">${data.body}</div>
-          <div class="post-meta">By ${data.author}</div>
-        `;
-        postsUl.appendChild(li);
-      });
+    // Register
+    registerBtn.addEventListener("click", async () => {
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+      msg.style.color = "var(--error)";
+      if (!email || !password) {
+        msg.innerText = "Email and Password are required.";
+        return;
+      }
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCred.user);
+        msg.style.color = "var(--success)";
+        msg.innerText = "Verification email sent! Please check your inbox.";
+      } catch (err) {
+        msg.style.color = "var(--error)";
+        msg.innerText = err.message;
+      }
     });
+
+    // Login
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      msg.style.color = "var(--error)";
+      if (!email || !password) {
+        msg.innerText = "Email and Password are required.";
+        return;
+      }
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        if (!userCred.user.emailVerified) {
+          msg.innerText = "Please verify your email before logging in.";
+          await signOut(auth);
+        } else {
+          msg.innerText = "";
+          // Redirect to the forum (main page) after login
+          window.location.href = "/forum";  // Change this to your desired page URL
+        }
+      } catch (err) {
+        msg.innerText = err.message;
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      msg.style.color = "var(--text-dark)";
+      msg.innerText = "Logged out.";
+      window.location.href = "/login";  // Redirect back to login page after logout
+    });
+
+    // Auth state change handler
+    onAuthStateChanged(auth, async (user) => {
+      if (user && user.emailVerified) {
+        document.getElementById("auth").style.display = "none";
+        postArea.style.display = "block";
+        greeting.innerText = `Welcome, ${user.email}`;
+        msg.innerText = "";
+        loadPosts();
+      } else {
+        document.getElementById("auth").style.display = "block";
+        postArea.style.display = "none";
+        greeting.innerText = "";
+      }
+    });
+
+    // Load posts
+    async function loadPosts() {
+      const postsEl = document.getElementById("posts");
+      postsEl.innerHTML = "";
+      try {
+        const querySnapshot = await getDocs(collection(db, "posts"));
+        querySnapshot.forEach((doc) => {
+          const post = doc.data();
+          const li = document.createElement("li");
+
+          const titleEl = document.createElement("div");
+          titleEl.className = "title";
+          titleEl.textContent = post.title;
+
+          const bodyEl = document.createElement("div");
+          bodyEl.className = "body";
+          bodyEl.textContent = post.body;
+
+          const timestampEl = document.createElement("div");
+          timestampEl.className = "timestamp";
+          const date = new Date(post.createdAt);
+          timestampEl.textContent = date.toLocaleString();
+
+          li.appendChild(titleEl);
+          li.appendChild(timestampEl);
+          li.appendChild(bodyEl);
+
+          postsEl.appendChild(li);
+        });
+      } catch (e) {
+        console.error("Error loading posts: ", e);
+      }
+    }
   </script>
 </body>
 </html>
